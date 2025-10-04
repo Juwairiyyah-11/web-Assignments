@@ -1,0 +1,14 @@
+{
+  "name": "web322-assignment2",
+  "version": "1.0.0",
+  "description": "WEB322 Assignment 2 - Climate Change Projects Web App",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Juwairiyyah Ahmed",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
