@@ -1,0 +1,44 @@
+<div class="navbar bg-base-100 shadow-md mb-6">
+
+    <!-- for the home link -->
+    <div class="flex-1">
+        <a 
+            href="/"
+            class="btn btn-ghost normal-case text-xl <%= (page == "/") ? 'active' : '' %>">
+            My Portfolio
+        </a>
+    </div>
+    <!-- for the navbar Links -->
+    <div class="flex-none">
+        <ul class="menu menu-horizontal px-1">
+
+            <li>
+                <a 
+                    href="/about"
+                    class="<%= (page == "/about") ? 'active' : '' %>">
+                    About
+                </a>
+            </li>
+            <li>
+                <a 
+                    href="/solutions/projects"
+                    class="<%= (page == "/solutions/projects") ? 'active' : '' %>">
+                    Projects
+                </a>
+            </li>
+            <li>
+                <a
+                    href="/solutions/projects?sector=ind"
+                    class="<%= (page == "/solutions/projects") ? 'active' : '' %>">
+                    Industry
+                </a></li>
+            <li>
+                <a
+                    href="/solutions/projects?sector=edu"
+                    class="<%= (page == "/solutions/projects") ? 'active' : '' %>">
+                    Education
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>

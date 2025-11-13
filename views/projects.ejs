@@ -1,0 +1,27 @@
+<% layout('layout') %>
+
+<h1 class="text-4xl font-bold mb-6">Projects</h1>
+<% if (projects.length > 0) { %>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <% projects.forEach(p => { %>
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title"><%= p.projectName %></h2>
+
+                    <p><strong>Sector:</strong> <%= p.sector %></p>
+                    <p class="leading-6">
+                        <%= p.description.substring(0, 120) %>...
+                    </p>
+                    <div class="card-actions justify-end mt-4">
+                        <a href="/solutions/projects/<%= p.project_id %>" class="btn btn-primary">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        <% }) %>
+    </div>
+
+<% } else { %>
+    <p class="text-lg">No projects available.</p>
+<% } %>

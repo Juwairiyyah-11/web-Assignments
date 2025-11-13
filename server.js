@@ -1,5 +1,5 @@
 /********************************************************************************
-* WEB322 – Assignment 01
+* WEB322 – Assignment 02
 * File: server.js
 *
 * I declare that this assignment is my own work in accordance with Seneca's
@@ -7,7 +7,7 @@
 *
 * https://www.senecapolytechnic.ca/about/policies/academic-integrity-policy.html
 *
-* Name: Juwairiyyah Ahmed   Student ID: 173801234   Date: 02/10/2025
+* Name: Juwairiyyah Ahmed   Student ID: 173801234   Date: 12/11/2025
 *
 ********************************************************************************/
 
@@ -16,57 +16,100 @@ const app = express();
 const projectData = require("./modules/projects");
 const HTTP_PORT = process.env.PORT || 8080;
 
-app.get("/", (req, res) => {
-    res.send("Assignment 1: Juwairiyyah Ahmed - 173801234");
+// setup for middleware and view engine
+app.use(express.static("public"));
+app.set("view engine", "ejs");
+app.set("views", __dirname + "/views");
+
+// Returns home page content
+app.get('/', (req, res) => {
+    res.render("home", { title: "Home", page:"/" });
+});
+
+// Returns about page content
+app.get("/about", (req, res) => {
+    res.render("about", {title: "About",page: "/about"});
 });
 
 // Returns all the projects from the module
 app.get("/solutions/projects", (req, res) => {
-    projectData.getAllProjects()
-      .then(projects => {
-        res.json(projects);
-    })
-      .catch(err => {
-        res.status(500).json({ message: err});
+    const sector = req.query.sector;
+
+    if (sector) {
+        projectData.getProjectsBySector(sector)
+            .then(projects => {
+                res.render("projects", {
+                    title: "Projects",
+                    projects,
+                    page: "/solutions/projects"
+                });
+            })
+            .catch(err => {
+                res.status(404).render("custom-404", {
+                    title: "Not Found",
+                    message: `No projects found for sector: ${sector}`,
+                    page: ""
+                });
+            });
+
+    } else {
+        projectData.getAllProjects()
+            .then(projects => {
+                res.render("projects", {
+                    title: "Projects",
+                    projects,
+                    page: "/solutions/projects"
+                });
+            })
+            .catch(err => {
+                res.status(404).render("custom-404", {
+                    title: "Not Found",
+                    message: "Unable to load project list.",
+                    page: ""
+                });
+            });
+    }
+});
+
+// Displays one project using the ID
+app.get("/solutions/projects/:id", (req, res) => {
+    const id = Number(req.params.id);
+
+    projectData.getProjectById(id)
+        .then(project => {
+            res.render("project-single", {
+                title: project.projectName,
+                project,
+                page: "/solutions/projects"
+            });
+        })
+        .catch(err => {
+            res.status(404).render("custom-404", {
+                title: "Not Found",
+                message: `No project found with ID: ${id}`,
+                page: ""
+            });
+        });
+});
+
+  // A catch all route for any requests that don't match the specified ones
+  // 404 error page
+app.use((req, res) => {
+    res.status(404).render("custom-404", {
+        title: "Not Found",
+        message: "Page not found.",
+        page: ""
     });
 });
 
-// the demo with a known ID
-app.get("/solutions/projects/id-demo", (req, res) => {
-    const demoId = 9;
-
-    projectData
-      .getProjectById(demoId)
-      .then(project => {
-        res.json(project);
+//Initializes and starts the server
+projectData.initialize()
+    .then(() => {
+        app.listen(HTTP_PORT, () => {
+            console.log(`Server running on port ${HTTP_PORT}`);
+        });
     })
-      .catch(err => {
-        res.status(404).json({ message: err });
+    .catch(err => {
+        console.log("Initialization failed:", err);
     });
-});
-
-// the demo using a partial string
-app.get("/solutions/projects/sector-demo", (req, res) => {
-    const demoSector = "agriculture";
-    projectData
-      .getProjectsBySector(demoSector)
-      .then((sectorProjects) => {
-        res.json(sectorProjects);
-    })
-      .catch((err) => {
-        res.status(404).json({ message: err });
-    });
-});
-
-// initializes the project data first, then allows server to start
-projectData
-  .Initialize()
-  .then(() => {
-    app.listen(HTTP_PORT, () => {
-        console.log('Server is running on port: ${HTTP_PORT}');
-        console.log("Visit http://localhost:8080/");
-    });
-  })
-  .catch(err => {
-    console.log("Failed to initialize the project data:", err);
-  });
+// End of server.js

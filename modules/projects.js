@@ -1,5 +1,5 @@
 /********************************************************************************
-* WEB322 – Assignment 01
+* WEB322 – Assignment 02
 * File: projects.js
 *
 * I declare that this assignment is my own work in accordance with Seneca's
@@ -7,29 +7,25 @@
 *
 * https://www.senecapolytechnic.ca/about/policies/academic-integrity-policy.html
 *
-* Name: Juwairiyyah Ahmed   Student ID: 173801234   Date: 02/10/2025
+* Name: Juwairiyyah Ahmed   Student ID: 173801234   Date: 12/11/2025
 *
 ********************************************************************************/
 const projectData = require("../data/projectData");
 const sectorData = require("../data/sectorData");
 
 let projects = [];
-
-// initialize(): combines the projectData with the matching sector
-function Initialize() {
+// initialize function that combines projectData with sector names
+function initialize() {
     return new Promise((resolve, reject) => {
         try {
             projects = [];
 
-            projectData.forEach((project) => {
-                const matchingSector = sectorData.find(
-                    (sector) => sector.id === project.sector_id
-                );
-                const completeProject = {
+            projectData.forEach(project => {
+                const sectorMatch = sectorData.find(s => s.id === project.sector_id);
+                projects.push({
                     ...project,
-                    sector: matchingSector ? matchingSector.sector_name : "Unknown",
-                };
-                projects.push(completeProject);
+                    sector: sectorMatch ? sectorMatch.sector_name : "Unknown"
+                });
             });
 
             resolve();
@@ -39,73 +35,36 @@ function Initialize() {
     });
 }
 
-// getAllProjects(): returns the complete array for projects
+// Return all projects
 function getAllProjects() {
     return new Promise((resolve, reject) => {
-        if (projects.length > 0) {
-            resolve(projects);
-        } else {
-            reject("No project data available. Please initialize it first.");
-        }
+        if (projects.length > 0) resolve(projects);
+        else reject("No projects available.");
     });
 }
 
-// getProjectById(projectId): returns the one specified project
+// Return project by id
 function getProjectById(projectId) {
     return new Promise((resolve, reject) => {
-        const foundPorject = projects.find((proj) => proj.id === projectId);
-        if (foundProject) {
-            resolve(foundProject);
-        } else {
-            reject('Unable to fins project with ID: ${projectId}');
-        }
+        const found = projects.find(p => p.id === projectId);
+        found ? resolve(found) : reject(`Project not found: ${projectId}`);
     });
 }
 
-//getProjectsBySector(sector): a filter for the projects that's not case sensitive
+// Filter projects by sector
 function getProjectsBySector(sector) {
     return new Promise((resolve, reject) => {
         const query = sector.toLowerCase();
-        const filteredProjects = projects.filter((proj) =>
-            proj.sector.toLowerCase().includes(query)
-        );
-
-        if (filteredProjects.length > 0) {
-            resolve(filteredProjects);
-        } else {
-            reject('Unable to find projects for sector: ${sector}');
-        }
+        const filtered = projects.filter(p => p.sector.toLowerCase().includes(query));
+        filtered.length > 0
+            ? resolve(filtered)
+            : reject(`No projects found for sector: ${sector}`);
     });
 }
 
-// Exports all the functions for external use
 module.exports = {
-    Initialize,
+    initialize,
     getAllProjects,
     getProjectById,
-    getProjectsBySector,
+    getProjectsBySector
 };
-
-// For testing (optional)
-if (require.main === module) {
-    Initialize()
-      .then(() => getAllProjects())
-      .then((allProjects) => {
-        console.log("Total Projects Loaded:", allProjects.length);
-
-        return this.getProjectById(9);
-      })
-      .then((project) => {
-        console.log("\n Project with ID 9:");
-        console.log(project);
-
-        return getProjectsBySector("agriculture");
-      })
-      .then((sectorProjects) => {
-        console.log("\n Projects in Agriculture Sector:");
-        console.log(sectorProjects.map((p) => p.title));
-      })
-      .catch((err) => {
-        console.error("Error:", err);
-      });
-}
