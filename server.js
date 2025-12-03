@@ -99,16 +99,19 @@ app.use((err, req, res, next) => {
     .render('500', { title: 'Server Error', error: err.message });
 });
 
-export default async function handler(req, res) {
-  // Connect to DBs if not connected
+import serverless from "serverless-http";
+async function initConnections() {
   if (!global.mongooseConnected) {
     await mongoose.connect(process.env.MONGO_URI);
     global.mongooseConnected = true;
   }
+
   if (!global.pgConnected) {
     await sequelize.authenticate();
+    await sequelize.sync();
     global.pgConnected = true;
   }
-  return app(req, res);
 }
+await initConnections();
+export const handler = serverless(app);
 //end of server.js
