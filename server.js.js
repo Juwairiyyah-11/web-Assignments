@@ -20,33 +20,35 @@ import helmet from 'helmet';
 import clientSessions from 'client-sessions';
 // mongoose
 import mongoose from 'mongoose';
-
 import { sequelize } from './src/db/index.js';
 // routes
 import authRoutes from './src/routes/auth.js';
 import taskRoutes from './src/routes/tasks.js';
-
 import { ensureAuth } from './src/middleware/auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
 // security header
-app.use(helmet({
+app.use(helmet(
+  {
   contentSecurityPolicy: false
-}));
-// the handlebars setup
-app.engine('hbs', exphbs.engine({
+  })
+);
+// the template engine setup
+app.engine('hbs', exphbs.engine(
+  {
   extname: '.hbs',
   helpers: {
     eq: (a, b) => a === b,
     formatDate: d => (d ? new Date(d).toISOString().slice(0, 10) : '')
+    }
   }
-}));
-// sets the view engine to the handlebars
+));
+// sets the view engine
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'src', 'views'));
-// middleware
+
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use('/public', express.static(path.join(__dirname, 'public')));
@@ -54,7 +56,8 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 // Client's sessions
 const durationMs = (parseInt(process.env.SESSION_DURATION_MIN || '30', 10)) * 60 * 1000;
 app.use(
-  clientSessions({
+  clientSessions(
+    {
     cookieName: process.env.SESSION_COOKIE || 'session',
     secret: process.env.SESSION_SECRET,
     duration: durationMs,
@@ -64,48 +67,48 @@ app.use(
       httpOnly: true,
       secure: false,
     }
-  })
+    }
+  )
 );
-
+// middleware to make user data available in all views
 app.use((req, res, next) => {
   res.locals.user = req.session?.user || null;
   res.locals.appName = process.env.APP_NAME || 'Hybrid Task';
   next();
 });
 
-// the root route
+// routes
 app.get('/', (req, res) => {
   if (req.session?.user) return res.redirect('/dashboard');
   res.redirect('/login');
 });
 
-// Routes
 app.use(authRoutes); // authentication routes
 app.use(ensureAuth, taskRoutes); // task routes
 
 // 404 and 500 error handlers
-app.use((req, res) => res.status(404).render('404', { title: 'Not Found' }));
-app.use((err, req, res, next) => {
-  console.error("SERVER ERROR:", err);
-  res.status(500).render("500", {title: "Server Error", error: err.message,});
+app.use((req, res) => {
+  return res
+    .status(404)
+    .render('404', { title: 'Not Found', message: 'Page not found' });
 });
-let databasesInitialized = false;
-async function initDatabases() {
-  if (databasesInitialized) return;
-  try {
-    console.log("Connecting to MongoDB...");
-    await mongoose.connect(process.env.MONGO_URI);
+app.use((err, req, res, next) => {
+  console.error(err);
+  res
+    .status(500)
+    .render('500', { title: 'Server Error', error: err.message });
+});
 
-    console.log("Connecting to PostgreSQL...");
-    await sequelize.authenticate();
-    await sequelize.sync();
-    databasesInitialized = true;
-    console.log("Databases initialized successfully!");
-  } catch (err) {
-    console.error("Database initialization error:", err);
+export default async function handler(req, res) {
+  // Connect to DBs if not connected
+  if (!global.mongooseConnected) {
+    await mongoose.connect(process.env.MONGO_URI);
+    global.mongooseConnected = true;
   }
+  if (!global.pgConnected) {
+    await sequelize.authenticate();
+    global.pgConnected = true;
+  }
+  return app(req, res);
 }
-// initialize
-await initDatabases();
-export default app;
 //end of server.js
