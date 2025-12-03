@@ -10,13 +10,6 @@
 *
 *********************************************************************************/
 import 'dotenv/config';
-// DEBUG: print current MONGO_URI host (mask password)
-{
-  const uri = process.env.MONGO_URI || '';
-  const masked = uri.replace(/\/\/([^:]+):[^@]+@/, '//$1:***@');
-  console.log('[DEBUG] MONGO_URI:', masked);
-}
-
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -38,7 +31,6 @@ import { ensureAuth } from './src/middleware/auth.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
-
 // security header
 app.use(helmet({
   contentSecurityPolicy: false
@@ -54,7 +46,7 @@ app.engine('hbs', exphbs.engine({
 // sets the view engine to the handlebars
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'src', 'views'));
-
+// middleware
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use('/public', express.static(path.join(__dirname, 'public')));
@@ -75,10 +67,6 @@ app.use(
   })
 );
 
-app.use((req, _res, next) => {
-  res.locals = res.locals || {};
-  next();
-});
 app.use((req, res, next) => {
   res.locals.user = req.session?.user || null;
   res.locals.appName = process.env.APP_NAME || 'Hybrid Task';
@@ -97,24 +85,27 @@ app.use(ensureAuth, taskRoutes); // task routes
 
 // 404 and 500 error handlers
 app.use((req, res) => res.status(404).render('404', { title: 'Not Found' }));
-app.use((err, _req, res, _next) => {
-  console.error(err);
-  res.status(500).render('500', { title: 'Server Error', error: err.message });
+app.use((err, req, res, next) => {
+  console.error("SERVER ERROR:", err);
+  res.status(500).render("500", {title: "Server Error", error: err.message,});
 });
-
-const PORT = process.env.PORT || 3000;
-(async () => {
+let databasesInitialized = false;
+async function initDatabases() {
+  if (databasesInitialized) return;
   try {
-    // to connect the databases
+    console.log("Connecting to MongoDB...");
     await mongoose.connect(process.env.MONGO_URI);
-    await sequelize.authenticate(); // ensure it's authenticated
-    await sequelize.sync(); // to make sure the task tables are created
 
-    app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
-    });
-  } catch (e) {
-    console.error('Startup failure:', e);
-    process.exit(1);
+    console.log("Connecting to PostgreSQL...");
+    await sequelize.authenticate();
+    await sequelize.sync();
+    databasesInitialized = true;
+    console.log("Databases initialized successfully!");
+  } catch (err) {
+    console.error("Database initialization error:", err);
   }
-})();
+}
+// initialize
+await initDatabases();
+export default app;
+//end of server.js
