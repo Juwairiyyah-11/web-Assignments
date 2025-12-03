@@ -1,0 +1,10 @@
+{{!< layouts/main }}
+<section class="card">
+  <h1>Dashboard</h1>
+  <div class="grid">
+    <div class="stat">Total<br><b>{{stats.total}}</b></div>
+    <div class="stat">Completed<br><b>{{stats.completed}}</b></div>
+    <div class="stat">Pending<br><b>{{stats.pending}}</b></div>
+  </div>
+  <p class="mt"><a class="btn" href="/tasks">View Tasks</a> <a class="btn" href="/tasks/add">Add Task</a></p>
+</section>

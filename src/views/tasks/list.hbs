@@ -1,0 +1,32 @@
+{{!< layouts/main }}
+<section class="card">
+  <h1>My Tasks</h1>
+  <table class="table">
+    <thead>
+      <tr><th>Title</th><th>Due</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+      {{#if tasks.length}}
+        {{#each tasks}}
+          <tr>
+            <td>{{title}}</td>
+            <td>{{formatDate dueDate}}</td>
+            <td>
+              <form method="post" action="/tasks/status/{{id}}" style="display:inline">
+                <button class="link" title="Toggle status">{{status}}</button>
+              </form>
+            </td>
+            <td class="right">
+              <a class="btn small" href="/tasks/edit/{{id}}">Edit</a>
+              <form method="post" action="/tasks/delete/{{id}}" style="display:inline">
+                <button class="btn small danger" onclick="return confirm('Delete this task?')">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {{/each}}
+      {{else}}
+        <tr><td colspan="4">No tasks yet.</td></tr>
+      {{/if}}
+    </tbody>
+  </table>
+</section>

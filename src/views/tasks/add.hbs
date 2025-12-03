@@ -1,0 +1,17 @@
+{{!< layouts/main }}
+<section class="card">
+  <h1>Add Task</h1>
+  {{#if errors}}<ul class="alert danger">{{#each errors}}<li>{{this}}</li>{{/each}}</ul>{{/if}}
+  <form method="post" action="/tasks/add">
+    <label>Title <input name="title" value="{{body.title}}" required></label>
+    <label>Description <textarea name="description">{{body.description}}</textarea></label>
+    <label>Due Date <input type="date" name="dueDate" value="{{body.dueDate}}"></label>
+    <label>Status
+      <select name="status">
+        <option value="pending" {{#if (eq body.status "pending")}}selected{{/if}}>pending</option>
+        <option value="completed" {{#if (eq body.status "completed")}}selected{{/if}}>completed</option>
+      </select>
+    </label>
+    <button type="submit">Create</button>
+  </form>
+</section>

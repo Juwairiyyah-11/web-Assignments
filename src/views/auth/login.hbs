@@ -1,0 +1,14 @@
+{{!< layouts/main }}
+<section class="card">
+  <h1>Login</h1>
+  {{#if justRegistered}}<div class="success">{{justRegistered}}</div>{{/if}}
+  {{#if errors}}
+    <ul class="alert danger">{{#each errors}}<li>{{this}}</li>{{/each}}</ul>
+  {{/if}}
+
+  <form method="post" action="/login">
+    <label>Email <input type="email" name="email" value="{{body.email}}" required></label>
+    <label>Password <input type="password" name="password" required></label>
+    <button type="submit">Sign In</button>
+  </form>
+</section>
