@@ -25,6 +25,7 @@ import { sequelize } from './src/db/index.js';
 import authRoutes from './src/routes/auth.js';
 import taskRoutes from './src/routes/tasks.js';
 import { ensureAuth } from './src/middleware/auth.js';
+import serverless from "serverless-http";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,7 +49,7 @@ app.engine('hbs', exphbs.engine(
 // sets the view engine
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'src', 'views'));
-
+// middleware
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use('/public', express.static(path.join(__dirname, 'public')));
@@ -86,7 +87,7 @@ app.get('/', (req, res) => {
 app.use(authRoutes); // authentication routes
 app.use(ensureAuth, taskRoutes); // task routes
 
-// 404 and 500 error handlers
+// 404 and 500 error pages
 app.use((req, res) => {
   return res
     .status(404)
@@ -99,18 +100,16 @@ app.use((err, req, res, next) => {
     .render('500', { title: 'Server Error', error: err.message });
 });
 
-import serverless from "serverless-http";
+let dbInitialized = false;
 async function initConnections() {
-  if (!global.mongooseConnected) {
-    await mongoose.connect(process.env.MONGO_URI);
-    global.mongooseConnected = true;
-  }
+  if (dbInitialized) return;
 
-  if (!global.pgConnected) {
-    await sequelize.authenticate();
-    await sequelize.sync();
-    global.pgConnected = true;
-  }
+  await mongoose.connect(process.env.MONGO_URI);
+
+  await sequelize.authenticate();
+  await sequelize.sync();
+
+  dbInitialized = true;
 }
 await initConnections();
 export const handler = serverless(app);
