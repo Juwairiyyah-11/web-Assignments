@@ -13,7 +13,7 @@ require("dotenv").config();
 const express = require("express");
 
 const path = require("path");
-const { fileURLToPath } = require("url");
+const __dirname = __dirname;
 const exphbs = require("express-handlebars");
 // security header
 const helmet = require("helmet");
@@ -25,9 +25,6 @@ const { sequelize } = require("./src/db/index.js");
 const authRoutes = require("./src/routes/auth.js");
 const taskRoutes = require("./src/routes/tasks.js");
 const { ensureAuth } = require("./src/middleware/auth.js");
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // create express app
 const app = express();
