@@ -10,10 +10,10 @@
 *
 *********************************************************************************/
 require("dotenv").config();
+require("pg");
 const express = require("express");
 
 const path = require("path");
-const __dirname = __dirname;
 const exphbs = require("express-handlebars");
 // security header
 const helmet = require("helmet");
