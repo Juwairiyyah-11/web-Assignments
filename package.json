@@ -2,7 +2,7 @@
   "name": "web322-a3-hybrid-express-mongo-pg",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
+  "type": "commonjs",
   "engines": {
     "node": "24.x"
   },

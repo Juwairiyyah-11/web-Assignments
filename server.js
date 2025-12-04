@@ -9,28 +9,30 @@
 * Name: Juwairiyyah Ahmed Student   ID: 173801234   Date: 2025-12-2
 *
 *********************************************************************************/
-import 'dotenv/config';
-import express from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
+require("dotenv").config();
+const express = require("express");
 
-import exphbs from 'express-handlebars';
+const path = require("path");
+const { fileURLToPath } = require("url");
+const exphbs = require("express-handlebars");
 // security header
-import helmet from 'helmet';
-import clientSessions from 'client-sessions';
-// mongoose
-import mongoose from 'mongoose';
-import { sequelize } from './src/db/index.js';
+const helmet = require("helmet");
+const clientSessions = require("client-sessions");
+// connect to mongoose
+const mongoose = require("mongoose");
+const { sequelize } = require("./src/db/index.js");
 // routes
-import authRoutes from './src/routes/auth.js';
-import taskRoutes from './src/routes/tasks.js';
-import { ensureAuth } from './src/middleware/auth.js';
-import serverless from "serverless-http";
+const authRoutes = require("./src/routes/auth.js");
+const taskRoutes = require("./src/routes/tasks.js");
+const { ensureAuth } = require("./src/middleware/auth.js");
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// create express app
 const app = express();
-// security header
+
+// set security header
 app.use(helmet(
   {
   contentSecurityPolicy: false
@@ -46,6 +48,7 @@ app.engine('hbs', exphbs.engine(
     }
   }
 ));
+
 // sets the view engine
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'src', 'views'));
@@ -84,33 +87,32 @@ app.get('/', (req, res) => {
   res.redirect('/login');
 });
 
-app.use(authRoutes); // authentication routes
-app.use(ensureAuth, taskRoutes); // task routes
+app.use(authRoutes); // authentication route
+app.use(ensureAuth, taskRoutes); // task route
 
 // 404 and 500 error pages
-app.use((req, res) => {
-  return res
-    .status(404)
-    .render('404', { title: 'Not Found', message: 'Page not found' });
+app.use((req, res) => {res.status(404).render("404", {
+    title: "Not Found",
+    message: "Page not found",
+  });
 });
-app.use((err, req, res, next) => {
-  console.error(err);
-  res
-    .status(500)
-    .render('500', { title: 'Server Error', error: err.message });
+app.use((err, req, res, next) => {console.error(err);
+  res.status(500).render("500", {
+    title: "Server Error",
+    error: err.message,
+  });
 });
 
 let dbInitialized = false;
 async function initConnections() {
   if (dbInitialized) return;
-
   await mongoose.connect(process.env.MONGO_URI);
-
   await sequelize.authenticate();
   await sequelize.sync();
-
   dbInitialized = true;
 }
-await initConnections();
-export const handler = serverless(app);
+module.exports = {
+  app,
+  initConnections,
+};
 //end of server.js
